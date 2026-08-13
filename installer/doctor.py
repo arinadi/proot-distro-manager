@@ -12,7 +12,7 @@ import shutil
 import sys
 from typing import Callable, NamedTuple
 
-from . import audio, packages
+from . import audio, packages, provision
 from . import start as desktop
 from .const import (
     LAUNCHER_SRC,
@@ -94,9 +94,11 @@ def _pkg_fix(label: str, packages: list[str], with_x11_repo: bool = False):
 
 def _fix_container(log: Log) -> bool:
     log("  pulling the image — this takes a few minutes")
+    provision.forget_package_manager()
     ok = pull_image(log)
     if ok:
         packages.reapply_saved_mirror(log)
+        ok = provision.provision_container(log)
     return ok
 
 
@@ -252,6 +254,39 @@ def diagnose() -> list[Issue]:
             None if container else _fix_container,
         )
     )
+
+    # Package manager + GPU/audio userspace. XLabs's own image has both
+    # already; a vanilla Manual Install pull has neither until provisioned
+    # — see installer/provision.py for why this can't just be baked into
+    # an image the way it used to be.
+    if container:
+        mgr = provision.detect_package_manager(lambda _m: None)
+        issues.append(
+            Issue(
+                "Package manager",
+                mgr is not None,
+                mgr.name if mgr is not None else "None of apt/apk/pacman/dnf found",
+            )
+        )
+        if mgr is not None:
+            gpu_ok, audio_ok = provision.gpu_audio_present()
+            packages_ok = gpu_ok and audio_ok
+            if packages_ok:
+                detail = "glxinfo and pactl present"
+            elif not gpu_ok and not audio_ok:
+                detail = "Neither GL (glxinfo) nor audio (pactl) userspace installed"
+            elif not gpu_ok:
+                detail = "GL userspace (glxinfo) missing"
+            else:
+                detail = "Audio userspace (pactl) missing"
+            issues.append(
+                Issue(
+                    "GPU/Audio packages",
+                    packages_ok,
+                    detail,
+                    None if packages_ok else provision.ensure_gpu_audio_packages,
+                )
+            )
 
     # Audio. Which method works is a device question, so report the one in
     # use and whether it is actually reachable.

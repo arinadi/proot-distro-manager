@@ -207,9 +207,21 @@ here doesn't add a container alongside the default; it replaces it, exactly
 like Reset does, just pointed somewhere else. True multi-container support
 is on the [roadmap](#-roadmap), not built yet.
 
+XLabs's image ships an admin user, sudo and bash baked in at build time —
+a vanilla pull has none of that. PDM provisions it instead, right after
+any fresh pull: detects the container's package manager (apt / apk /
+pacman / dnf), creates the admin user the distro-appropriate way
+(`useradd`+`chpasswd` on the first three, BusyBox's `adduser`+`passwd` on
+Alpine), and installs sudo and bash if either is missing. Idempotent — a
+fast no-op on XLabs's own image, where all of it is already true. See
+`installer/provision.py`.
+
 Vanilla picks work with **Store** only once the image's package manager is
 apt (Debian, Ubuntu) — Alpine's `apk`, Arch's `pacman` and Fedora's `dnf`
-aren't wired up yet; also on the roadmap.
+aren't wired up there yet; also on the roadmap. GPU (Mesa) and audio
+(`pactl`) userspace, needed for Start Desktop to actually render and play
+anything, install the same distro-aware way — Doctor reports and fixes it
+under **GPU/Audio packages**.
 
 ### Update
 
@@ -256,6 +268,12 @@ timezone, GPU, audio, and more — each shown as ● present, ○ missing, or
 **?** unknown.
 
 - **Fix (N)** repairs everything repairable in one press
+- **Package manager** — apt / apk / pacman / dnf, detected once and
+  cached; everything distro-aware (provisioning, GPU/Audio packages)
+  reads this instead of re-probing the container
+- **GPU/Audio packages** — Mesa (`glxinfo`) and `pactl`, the userspace
+  Start Desktop needs to actually render and play anything; present on
+  XLabs's image already, installed distro-aware here otherwise
 - **DNS** — repoints `resolv.conf` at public DNS when name resolution breaks
 - **Timezone** — matches Android's zone (the image ships as UTC)
 - **Electron apps** (VS Code, etc.) — patches launchers with `--no-sandbox`;
@@ -375,7 +393,8 @@ proot-distro-manager/
 │   ├── bench.py        ←   GPU benchmark and profile
 │   ├── config.py       ←   .env, per-device settings
 │   ├── backup.py       ←   Home directory backup/restore
-│   └── presets.py      ←   Restore a repo-tracked preset (see backup.py)
+│   ├── presets.py      ←   Restore a repo-tracked preset (see backup.py)
+│   └── provision.py    ←   Distro-aware user/sudo/bash/GPU/audio setup
 ├── tests/              ← Headless TUI tests, run by CI
 ├── docker/dev/         ← Local TUI test harness
 ├── presets/            ← Your own backup, restored on fresh installs
@@ -442,16 +461,18 @@ still ahead, roughly in the order it'd actually get built:
   created date, size — with Start/Stop/Reset/Cache becoming per-container
   actions from a picker, plus an overview screen and the ability to clone
   a container before doing something risky to it.
-- **Pluggable Store.** A package-manager abstraction (apt / apk / pacman /
-  dnf) selected by the container's actual distro, so Store works on
-  whatever Manual Install pulled, not only Debian.
+- **Pluggable Store.** `installer/provision.py` already has a
+  package-manager abstraction (apt / apk / pacman / dnf) — it just only
+  does provisioning (admin user, sudo, bash) and GPU/Audio packages so
+  far. Extending the same table to Store's search/install/mirror logic
+  is the rest of this item, not a second abstraction to design.
 - **Pluggable Doctor.** Host-level checks (DNS, timezone, stale sockets,
-  storage, Termux:X11, GPU/audio) stay shared across every container.
-  Distro-specific checks — Debian's security-archive bug, Alpine's
-  musl-vs-glibc proot quirks, Arch's pacman keyring init, Fedora's dnf
-  slowness on mobile data — become named fixes per package manager,
-  matching the existing philosophy of diagnosing specific failure modes
-  instead of "just reinstall."
+  storage, Termux:X11) stay shared across every container. GPU/Audio
+  packages is the first distro-aware fix; the rest — Debian's
+  security-archive bug, Alpine's musl-vs-glibc proot quirks, Arch's
+  pacman keyring init, Fedora's dnf slowness on mobile data — become
+  named fixes the same way, matching the existing philosophy of
+  diagnosing specific failure modes instead of "just reinstall."
 - **Desktop environment choice**, not just distro choice: XFCE (today's
   recipe), LXQt/MATE as lighter alternatives, or headless/CLI-only for a
   pure dev shell with no X11 at all.

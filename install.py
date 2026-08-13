@@ -17,7 +17,6 @@ import sys
 
 try:
     from installer.const import (
-        ADMIN_USER,
         CONTAINER_NAME,
         HOME_BIN,
         IMAGE_REF,
@@ -36,6 +35,7 @@ try:
     )
     from installer.presets import find_preset
     from installer.presets import restore_preset as apply_preset
+    from installer.provision import provision_container as apply_provisioning
     from installer.system import ensure_home_bin_on_path, link_launcher
 except ImportError:
     sys.exit(
@@ -246,23 +246,19 @@ def install_container() -> bool:
     return True
 
 
-def setup_admin_user() -> None:
-    """The image ships an admin user; this repairs a container that was built
-    or restored without one."""
+def provision_container() -> None:
+    """XLabs's own image already has an admin user, sudo and bash baked
+    in at build time — this exists for every image that doesn't: a
+    vanilla distro pulled some other way, or (once Manual Install lands
+    fully) anything else. Distro-aware; see installer/provision.py."""
     if not container_exists():
         return
 
-    say("Verifying admin user")
-    setup = (
-        f"id {ADMIN_USER} >/dev/null 2>&1 || useradd -m -s /bin/bash {ADMIN_USER}; "
-        f'echo "{ADMIN_USER}:{ADMIN_USER}" | chpasswd; '
-        f'echo "{ADMIN_USER} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/{ADMIN_USER}; '
-        f"chmod 0440 /etc/sudoers.d/{ADMIN_USER}"
-    )
-    if run(f"proot-distro login {CONTAINER_NAME} -- bash -c '{setup}'", timeout=120) == 0:
-        ok("admin user ready")
+    say("Provisioning container (user, sudo, bash)")
+    if apply_provisioning(lambda msg: print(f"    {msg}")):
+        ok("container provisioned")
     else:
-        fail("user", "could not configure the admin user")
+        fail("user", "could not provision the container — see output above")
 
 
 def restore_preset(fresh: bool) -> None:
@@ -322,7 +318,7 @@ def main() -> int:
     install_libs()
     install_termux_packages()
     fresh_container = install_container()
-    setup_admin_user()
+    provision_container()
     restore_preset(fresh_container)
     install_launcher()
 

@@ -32,7 +32,7 @@ from textual.widgets import (
     Static,
 )
 
-from . import audio, backup, bench, doctor, packages
+from . import audio, backup, bench, doctor, packages, provision
 from . import start as desktop
 from .const import CACHE_DIR, CONTAINER_NAME, IMAGE_REF, REPO_DIR
 from .system import (
@@ -363,9 +363,17 @@ def run_reset(log) -> None:
         log("[yellow]Container could not be removed cleanly; continuing.[/yellow]")
 
     log("")
+    # A fresh pull invalidates whatever package manager was detected for
+    # the container that just got removed — Manual Install can change the
+    # distro entirely, and even a same-image Reset is worth re-checking
+    # rather than trusting a value written for a container that no longer
+    # exists.
+    provision.forget_package_manager()
     ok = pull_image(log)
     if ok:
         packages.reapply_saved_mirror(log)
+        log("")
+        provision.provision_container(log)
 
     log("")
     if ok:
@@ -380,14 +388,21 @@ def run_manual_install(image_ref: str):
 
     Unlike Reset, this never touches apt's mirror (reapply_saved_mirror)
     — that repair assumes a Debian sources.list exists, which most images
-    a manual install pulls will not have."""
+    a manual install pulls will not have. Provisioning (user, sudo, bash)
+    still runs — nothing about them is Debian-specific, and a vanilla
+    pull has none of them yet."""
 
     def run(log) -> None:
         log("Stopping the desktop...")
         desktop.stop_desktop(log)
         log("")
 
+        provision.forget_package_manager()
         ok = pull_custom_image(image_ref, log)
+
+        if ok:
+            log("")
+            provision.provision_container(log)
 
         log("")
         if ok:

@@ -117,7 +117,7 @@ def test_bootstrap_order_is_container_then_user_then_preset() -> None:
 
     source = inspect.getsource(install.main)
     container_at = source.index("install_container()")
-    admin_at = source.index("setup_admin_user()")
+    admin_at = source.index("provision_container()")
     preset_at = source.index("restore_preset(")
     check(
         container_at < admin_at < preset_at,

@@ -36,6 +36,7 @@ from test_main_screen import TESTS as MAIN_SCREEN_TESTS
 from test_manual_install import TESTS as MANUAL_INSTALL_TESTS
 from test_packages import TESTS as PACKAGES_TESTS
 from test_preflight import TESTS as PREFLIGHT_TESTS
+from test_provision import TESTS as PROVISION_TESTS
 from test_settings_screen import TESTS as SETTINGS_SCREEN_TESTS
 from test_store_screen import TESTS as STORE_SCREEN_TESTS
 from test_system import TESTS as SYSTEM_TESTS
@@ -50,6 +51,7 @@ ALL_TESTS = [
     *INSTALL_TESTS,
     *CONFIG_TESTS,
     *PACKAGES_TESTS,
+    *PROVISION_TESTS,
     *BACKUP_TESTS,
     *MANUAL_INSTALL_TESTS,
     *BENCH_TESTS,
