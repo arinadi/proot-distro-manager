@@ -1,9 +1,11 @@
 <div align="center">
   <h1>📱 PDM — Proot-Distro Manager</h1>
-  <p><strong>Your phone is a Linux workstation — any distro, not just the one it ships with.</strong></p>
-  <p>A Debian 13 + XFCE desktop inside Termux by default, no root — or pick
-  any image proot-distro can pull and install that instead. Driven from a
-  touch-friendly TUI, not a wall of shell scripts.</p>
+  <p><strong>PD made Easy.</strong></p>
+  <p>Install, break, reinstall — any Linux distro <a href="https://github.com/termux/proot-distro">proot-distro</a>
+  can pull, on your phone, no root. Built for Linux enthusiasts who like
+  distro-hopping and experimenting, not developers who just want one desktop
+  that works and stays out of the way — that's
+  <a href="https://github.com/arinadi/XLabs">XLabs</a>, PDM's sibling project.</p>
   <p>
     <a href="https://github.com/arinadi/proot-distro-manager/actions"><img src="https://img.shields.io/github/actions/workflow/status/arinadi/proot-distro-manager/checks.yml?label=checks"></a>
     <a href="https://github.com/arinadi/proot-distro-manager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/arinadi/proot-distro-manager"></a>
@@ -17,7 +19,7 @@
 
   <img src="docs/arinanox-screenshot.jpg" alt="PDM desktop" width="360" style="border-radius:12px;">
   <p>
-    Stable, usable Linux as Portable Service & Dev Tools<br>
+    A community project — try a distro, hit something broken, <a href="https://github.com/arinadi/proot-distro-manager/issues">open an issue</a>.<br>
     <small>Termux&nbsp;&nbsp;·&nbsp;&nbsp;proot-distro&nbsp;&nbsp;·&nbsp;&nbsp;XFCE&nbsp;&nbsp;·&nbsp;&nbsp;X11&nbsp;&nbsp;·&nbsp;&nbsp;Textual</small>
   </p>
 </div>
@@ -38,6 +40,14 @@ Your phone is a pocket PC with 8GB+ RAM and an ARM64 CPU — it deserves a real 
 | Locked into one distro | **Manual Install** — any image proot-distro can pull |
 
 **Can't do:** Docker, systemd services, native x86, real root (proot fakes it). See [Limitations](#️-limitations).
+
+**Who this is for:** you like trying distros, you don't mind rough edges
+on the ones PDM has verified less thoroughly (Arch, Fedora — see
+[Manual Install](#manual-install)), and you'll actually tell us when
+something breaks. If you just want a dev desktop that works and don't
+care which distro it runs, [XLabs](https://github.com/arinadi/XLabs) is
+built for exactly that instead — one recipe, made reliable, nothing to
+configure.
 
 ---
 
@@ -490,6 +500,24 @@ still ahead, roughly in the order it'd actually get built:
 None of this is committed to a timeline — it's the shape the project is
 aimed at, kept here so a contribution knows where it fits rather than
 guessing.
+
+---
+
+## 🗣️ Feedback Wanted
+
+PDM only gets more distros right with more people actually trying them.
+Two things are specifically worth an issue, not just a shrug:
+
+- **A distro that doesn't provision right.** `installer/provision.py`'s
+  apt and apk profiles are verified against real containers; pacman and
+  dnf are best-effort from each distro's documented conventions, not
+  tested here — if one fails, Doctor's **C** (copy) button on the
+  failed step is the single most useful thing to attach.
+- **A distro you want as a [Manual Install](#manual-install) quick-pick**
+  that isn't there yet. The list is five deep on purpose, not a ceiling.
+
+[Open an issue](https://github.com/arinadi/proot-distro-manager/issues) —
+that's the whole process. No template, no ceremony.
 
 ---
 
