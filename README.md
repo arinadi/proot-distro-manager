@@ -5,7 +5,7 @@
   any image proot-distro can pull and install that instead. Driven from a
   touch-friendly TUI, not a wall of shell scripts.</p>
   <p>
-    <a href="https://github.com/arinadi/proot-distro-manager/actions"><img src="https://img.shields.io/github/actions/workflow/status/arinadi/proot-distro-manager/build-image.yml?label=build"></a>
+    <a href="https://github.com/arinadi/proot-distro-manager/actions"><img src="https://img.shields.io/github/actions/workflow/status/arinadi/proot-distro-manager/checks.yml?label=checks"></a>
     <a href="https://github.com/arinadi/proot-distro-manager/blob/main/LICENSE"><img src="https://img.shields.io/github/license/arinadi/proot-distro-manager"></a>
     <a href="https://github.com/arinadi/proot-distro-manager/commits/main"><img src="https://img.shields.io/github/last-commit/arinadi/proot-distro-manager"></a>
     <a href="https://github.com/arinadi/proot-distro-manager/stargazers"><img src="https://img.shields.io/github/stars/arinadi/proot-distro-manager"></a>
@@ -45,18 +45,18 @@ Your phone is a pocket PC with 8GB+ RAM and an ARM64 CPU — it deserves a real 
 
 A from-scratch Python [Textual](https://github.com/Textualize/textual) TUI,
 not shell scripts — idempotent, resumable,
-[tested](tests/run_tests.py) on every push. The system image is declarative
-(`Dockerfile`, built by CI) instead of a script run against whatever state
-the phone happens to be in. **Doctor** diagnoses and fixes named failure
-modes — DNS, timezone, the Electron sandbox, per-device GPU/audio — instead
-of "reinstall and hope."
+[tested](tests/run_tests.py) on every push. **Doctor** diagnoses and fixes
+named failure modes — DNS, timezone, the Electron sandbox, per-device
+GPU/audio — instead of "reinstall and hope."
 
-[XLabs](https://github.com/arinadi/XLabs) covers this same ground for one
-fixed recipe — Debian 13 + XFCE4 — and puts all its effort into that one
-path working reliably. PDM starts from that same codebase and the same
-philosophy, then opens the front door: **Manual Install** lets the
-container be *any* proot-distro image, not only the prebuilt one. Both
-GPLv3.
+PDM builds and publishes no image of its own — it's a manager, not a
+distributor. The default pull is [XLabs](https://github.com/arinadi/XLabs)'s
+own maintained Debian 13 + XFCE4 build, the same as picking it explicitly
+from **Manual Install**; anything else proot-distro can pull is one tap
+away in that same screen. XLabs puts all its effort into that one fixed
+recipe working reliably — PDM starts from that codebase and philosophy,
+then opens the front door instead of building a second image to maintain
+alongside it. Both GPLv3.
 
 ---
 
@@ -103,11 +103,12 @@ reference below in [The TUI, screen by screen](#-the-tui-screen-by-screen).
 
 ## 🏗️ How It Works
 
-Two layers: the **core** (declarative — `image/Dockerfile`, built by CI,
-published to `ghcr.io/arinadi/proot-distro-manager`) and your **user layer**
+Two layers: the **core** (an image someone else built and publishes —
+XLabs's by default, `ghcr.io/arinadi/xlabs:latest`) and your **user layer**
 (whatever you install inside the container — survives restarts, wiped by
-Reset). That core is the *default*, not the only option — see
-[Manual Install](#manual-install) below.
+Reset). PDM doesn't build or host the core itself; XLabs's default is a
+starting point, not the only option — see
+[Manual Install](#manual-install) below for any other image.
 
 Image pulls try GHCR first, falling back to Docker Hub — GHCR has no rate
 limit, which matters on mobile data behind carrier NAT where Docker Hub's
@@ -194,7 +195,7 @@ type; two rows of quick-picks fill it in for you:
 - **★ Flagship — XLabs** (`ghcr.io/arinadi/xlabs:latest`): Debian Trixie,
   XFCE, by Arinano. The one maintained, ready-to-use build here — not a
   vanilla rootfs, a full desktop that boots straight to **Start Desktop**
-  working, the same as PDM's own default image.
+  working, the same as PDM's default pull — it is the same image, not a copy.
 - **Debian / Ubuntu / Alpine / Arch Linux / Fedora**: the vanilla upstream
   rootfs for each, with no desktop environment baked in — install one
   afterward from Store, or use the container as a plain shell.
@@ -309,7 +310,7 @@ narrowly.
 
 ### Reset and Cache
 
-**Reset** deletes the container and pulls a fresh copy of PDM's default
+**Reset** deletes the container and pulls a fresh copy of PDM's default (XLabs's)
 image. **Cache** drops downloaded image layers only. Both confirm first. To
 reinstall with something other than the default, use **Manual Install**
 instead of Reset.
@@ -335,20 +336,13 @@ Layout holds down to a 36-column terminal.
 
 ## 📦 What's Included
 
-The default image is a **vanilla baseline** on purpose — the standard
-Termux + proot + XFCE recipe, plus a browser:
-
-| Category | Packages |
-|----------|----------|
-| 🖥️ Desktop | `xfce4`, `xfce4-terminal`, `dbus-x11` |
-| 🌐 Browser | `firefox-esr` |
-| 🎮 Graphics | Mesa userspace, `x11-xserver-utils`, `mesa-utils` |
-| 🔊 Audio | `pulseaudio-utils` (client; server runs in Termux) |
-| 🧱 Base | `ca-certificates`, `locales`, `sudo` |
-
-Installed **with** recommends — trimming them broke `xfwm4`/`xfdesktop` in
-an earlier build. Anything else is a search away in [Store](#store) — or a
-different starting point entirely, via [Manual Install](#manual-install).
+Whatever the installed image ships, plus anything added afterward from
+[Store](#store) — PDM doesn't curate or trim package lists inside any
+image, default or otherwise. XLabs's default build is a **vanilla
+baseline**, documented in [its own README](https://github.com/arinadi/XLabs#-whats-included):
+XFCE, Firefox ESR, Mesa userspace, and little else. That documentation
+lives with the image that owns it, not duplicated here where it would
+drift out of sync.
 
 ---
 
@@ -356,8 +350,10 @@ different starting point entirely, via [Manual Install](#manual-install).
 
 No GPU vendor detection — the start sequence just tries renderers in order
 and takes the first that exists: virgl, then ANGLE (Vulkan), then software.
-The default image ships Mesa userspace either way, so OpenGL works
-regardless.
+This runs regardless of which image is installed; whether OpenGL actually
+works depends on that image shipping Mesa userspace — XLabs's default
+does, a vanilla distro pull from Manual Install may not until it's
+installed via Store.
 
 ---
 
@@ -380,7 +376,6 @@ proot-distro-manager/
 │   ├── config.py       ←   .env, per-device settings
 │   ├── backup.py       ←   Home directory backup/restore
 │   └── presets.py      ←   Restore a repo-tracked preset (see backup.py)
-├── image/              ← Default image definition (Dockerfile + configs)
 ├── tests/              ← Headless TUI tests, run by CI
 ├── docker/dev/         ← Local TUI test harness
 ├── presets/            ← Your own backup, restored on fresh installs
@@ -461,8 +456,10 @@ still ahead, roughly in the order it'd actually get built:
   recipe), LXQt/MATE as lighter alternatives, or headless/CLI-only for a
   pure dev shell with no X11 at all.
 - **Curated recipes** — one-tap combos ("Debian + XFCE dev", "Alpine + CLI
-  minimal") instead of typing a raw image reference every time, built on
-  top of Manual Install rather than replacing it.
+  minimal") as a *vanilla image + a scripted setup step* (pull, then apt/apk
+  install a package set through Store), not a new prebuilt image PDM
+  builds and hosts itself — same reasoning as [Design](#-design): compose
+  what already exists rather than maintain a second copy of it.
 - **Per-container Backup/Restore/Presets** — the username and home path
   currently assume `admin`/Debian; this travels with each container's own
   metadata once multi-container support exists, and presets become a

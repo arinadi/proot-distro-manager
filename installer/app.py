@@ -34,7 +34,7 @@ from textual.widgets import (
 
 from . import audio, backup, bench, doctor, packages
 from . import start as desktop
-from .const import CACHE_DIR, CONTAINER_NAME, REPO_DIR
+from .const import CACHE_DIR, CONTAINER_NAME, IMAGE_REF, REPO_DIR
 from .system import (
     get_version,
     human_size,
@@ -580,7 +580,7 @@ class MainScreen(Screen):
 # the picks below rather than folded in as just another row: those are
 # raw distros with no desktop environment; this one boots straight to
 # Start Desktop working, same as PDM's own default.
-FLAGSHIP_PRESET = ("xlabs", "XLabs", "ghcr.io/arinadi/xlabs:latest")
+FLAGSHIP_PRESET = ("xlabs", "XLabs", IMAGE_REF)
 FLAGSHIP_DESCRIPTION = "Debian Trixie, XFCE, by Arinano"
 
 # Quick-pick starting points only — proot-distro takes any OCI reference

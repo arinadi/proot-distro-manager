@@ -7,6 +7,12 @@ TERMUX_PREFIX = "/data/data/com.termux/files/usr"
 CONTAINER_NAME = "pdm"
 ADMIN_USER = "admin"
 
+# PDM publishes no image of its own — it's a manager, not a distributor.
+# The default pull is XLabs's own maintained build (Debian Trixie + XFCE,
+# by Arinano; see installer/app.py's FLAGSHIP_PRESET, which reuses this
+# same ref rather than duplicating it) — the same image Manual Install's
+# flagship option offers explicitly. Anything else is a Manual Install away.
+#
 # GHCR first: no pull-rate limit for a public package, which matters more
 # than raw speed here — most installs happen over mobile data behind
 # carrier-grade NAT, where a Docker Hub anonymous-pull limit (10/hour per
@@ -14,8 +20,8 @@ ADMIN_USER = "admin"
 # just this tool's own pulls. Docker Hub is faster for some ISPs (ghcr.io
 # routes through Fastly's AnyCast CDN, which some ISPs peer with poorly),
 # so it stays as an automatic fallback rather than being dropped.
-IMAGE_REF = "ghcr.io/arinadi/proot-distro-manager:latest"
-IMAGE_REF_FALLBACK = "arinadi/proot-distro-manager:latest"
+IMAGE_REF = "ghcr.io/arinadi/xlabs:latest"
+IMAGE_REF_FALLBACK = "arinadi/xlabs:latest"
 
 PROOT_ROOT = f"{TERMUX_PREFIX}/var/lib/proot-distro"
 PROOT_DIR = f"{PROOT_ROOT}/containers/{CONTAINER_NAME}"
