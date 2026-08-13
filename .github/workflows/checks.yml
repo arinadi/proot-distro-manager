@@ -1,0 +1,41 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt ruff mypy
+
+      - name: Python syntax
+        run: python -m compileall -q install.py installer tests
+
+      - name: Lint
+        run: ruff check install.py installer tests
+
+      # Catches calling a name that lives in another module — the mistake a
+      # hand-written test here used to guard, badly.
+      - name: Types
+        run: mypy install.py installer
+
+      - name: Shell syntax
+        run: |
+          bash -n install.sh
+          bash -n uninstall.sh
+          bash -n pdm
+
+      - name: Headless TUI tests
+        run: python tests/run_tests.py

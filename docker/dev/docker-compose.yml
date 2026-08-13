@@ -1,0 +1,29 @@
+services:
+  pdm-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdm-dev
+    hostname: pdm-dev
+    stdin_open: true
+    tty: true
+
+    volumes:
+      # Live project mount
+      - ../../:/data/data/com.termux/files/home/pdm
+      # Persist proot container data
+      - proot-root:/data/data/com.termux/files/usr/var/lib/proot-distro
+      # WSLg X11 socket
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - PULSE_SERVER=tcp:127.0.0.1:4713
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+      # WSLg Wayland (optional, for native Wayland apps)
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+      - XDG_RUNTIME_DIR=/tmp
+
+volumes:
+  proot-root:

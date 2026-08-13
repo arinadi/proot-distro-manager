@@ -1,0 +1,33 @@
+# Lint config. Deliberately not the full default rule set: this is a small
+# app, and rules that only restyle working code cost review attention without
+# catching anything.
+
+line-length = 100
+target-version = "py39"
+
+[lint]
+select = [
+    "F",     # pyflakes — undefined names, unused imports
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "I",     # import order
+    "B",     # bugbear — real traps, e.g. mutable defaults
+    "UP",    # pyupgrade
+    "SIM",   # simplify
+    "RUF",
+]
+
+ignore = [
+    "E501",     # line length is handled by the formatter, not worth failing on
+    "UP031",    # %-formatting is fine where it reads better
+    "RUF012",   # ClassVar annotations on Textual BINDINGS add noise, not safety
+    "SIM115",   # the few open() calls without a context manager are deliberate
+    "RUF001",   # the prose uses en dashes on purpose
+    "RUF002",
+    "RUF003",
+]
+
+[lint.per-file-ignores]
+# Tests import the app package after adjusting sys.path, so their imports
+# cannot come first.
+"tests/*" = ["E402"]

@@ -1,0 +1,18 @@
+#!/bin/bash
+# PDM TUI launcher.
+# readlink -f resolves $PREFIX/bin/pdm back to the repo, so this works from
+# anywhere and keeps working after a git pull.
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+
+# install.sh accepts either name, so honour both here rather than assuming
+# python3 exists.
+if command -v python3 >/dev/null 2>&1; then
+    PYTHON=python3
+elif command -v python >/dev/null 2>&1; then
+    PYTHON=python
+else
+    echo "pdm: no Python interpreter found. Re-run install.sh." >&2
+    exit 1
+fi
+
+exec env PYTHONPATH="$SCRIPT_DIR" "$PYTHON" -m installer.app "$@"
