@@ -188,9 +188,16 @@ and it **verifies with `pgrep`** rather than just claiming success.
 
 Replaces whatever is currently installed with **any image proot-distro can
 pull** — `ubuntu:24.04`, `alpine:latest`, `archlinux:latest`,
-`ghcr.io/org/image:tag`, anything. Five quick-pick buttons (Debian, Ubuntu,
-Alpine, Arch, Fedora) fill in a starting reference; the field itself takes
-whatever you type.
+`ghcr.io/org/image:tag`, anything. The field itself takes whatever you
+type; two rows of quick-picks fill it in for you:
+
+- **★ Flagship — XLabs** (`ghcr.io/arinadi/xlabs:latest`): Debian Trixie,
+  XFCE, by Arinano. The one maintained, ready-to-use build here — not a
+  vanilla rootfs, a full desktop that boots straight to **Start Desktop**
+  working, the same as PDM's own default image.
+- **Debian / Ubuntu / Alpine / Arch Linux / Fedora**: the vanilla upstream
+  rootfs for each, with no desktop environment baked in — install one
+  afterward from Store, or use the container as a plain shell.
 
 This is the same container slot **Reset** uses, not a second, independent
 one — Start, Doctor, Backup and everything else still only know about the
@@ -199,10 +206,9 @@ here doesn't add a container alongside the default; it replaces it, exactly
 like Reset does, just pointed somewhere else. True multi-container support
 is on the [roadmap](#-roadmap), not built yet.
 
-Most images have no desktop environment baked in — that's specific to
-PDM's own prebuilt one. Install one afterward from **Store** (works once
-the image's package manager is apt; other package managers are also on the
-roadmap), or use the container as a plain shell.
+Vanilla picks work with **Store** only once the image's package manager is
+apt (Debian, Ubuntu) — Alpine's `apk`, Arch's `pacman` and Fedora's `dnf`
+aren't wired up yet; also on the roadmap.
 
 ### Update
 

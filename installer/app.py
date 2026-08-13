@@ -575,6 +575,14 @@ class MainScreen(Screen):
         )
 
 
+# The one maintained, ready-to-use build — Debian Trixie + XFCE, the same
+# image XLabs itself publishes, not a vanilla rootfs. Kept separate from
+# the picks below rather than folded in as just another row: those are
+# raw distros with no desktop environment; this one boots straight to
+# Start Desktop working, same as PDM's own default.
+FLAGSHIP_PRESET = ("xlabs", "XLabs", "ghcr.io/arinadi/xlabs:latest")
+FLAGSHIP_DESCRIPTION = "Debian Trixie, XFCE, by Arinano"
+
 # Quick-pick starting points only — proot-distro takes any OCI reference
 # directly (ubuntu:24.04, ghcr.io/org/image:tag, ...), so this is not a
 # curated list PDM has to keep in sync with what upstream actually offers.
@@ -588,6 +596,8 @@ MANUAL_INSTALL_PRESETS: tuple[tuple[str, str, str], ...] = (
     ("arch", "Arch Linux", "archlinux:latest"),
     ("fedora", "Fedora", "fedora:latest"),
 )
+
+ALL_INSTALL_PRESETS: tuple[tuple[str, str, str], ...] = (FLAGSHIP_PRESET, *MANUAL_INSTALL_PRESETS)
 
 
 class ManualInstallScreen(Screen):
@@ -609,10 +619,17 @@ class ManualInstallScreen(Screen):
         yield Label("Manual Install", classes="screen-title")
         with VerticalScroll(id="manual-install-form"):
             yield Static(
-                "Replaces whatever is currently installed. Most images have "
-                "no desktop environment — install one afterward from Store, "
-                "or use it as a plain shell.",
+                "Replaces whatever is currently installed.",
                 id="manual-install-note",
+            )
+            yield Label(f"★ Flagship — {FLAGSHIP_DESCRIPTION}")
+            with Grid(classes="row1"):
+                yield Button(
+                    "Install XLabs", id=f"preset-{FLAGSHIP_PRESET[0]}", variant="success"
+                )
+            yield Label(
+                "Or pick a distro directly — no desktop environment; install "
+                "one afterward from Store, or use it as a plain shell"
             )
             with Grid(classes="row3"):
                 for slug, label, _ref in MANUAL_INSTALL_PRESETS:
@@ -638,7 +655,7 @@ class ManualInstallScreen(Screen):
         if not button_id.startswith("preset-"):
             return
         slug = button_id.removeprefix("preset-")
-        for preset_slug, _label, ref in MANUAL_INSTALL_PRESETS:
+        for preset_slug, _label, ref in ALL_INSTALL_PRESETS:
             if preset_slug == slug:
                 self.query_one("#image-ref", Input).value = ref
                 return

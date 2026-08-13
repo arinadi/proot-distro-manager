@@ -216,6 +216,7 @@ ManualInstallScreen Input {
     margin: 0 2;
 }
 
+ManualInstallScreen Grid.row1,
 ManualInstallScreen Grid.row3 {
     margin: 1 2 0 2;
 }

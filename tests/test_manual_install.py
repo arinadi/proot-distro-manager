@@ -17,7 +17,25 @@ from support import check, run
 from textual.widgets import Input
 
 from installer import system
-from installer.app import ConfirmScreen, MainScreen, ManualInstallScreen, PDMApp
+from installer.app import (
+    ALL_INSTALL_PRESETS,
+    ConfirmScreen,
+    MainScreen,
+    ManualInstallScreen,
+    PDMApp,
+)
+
+
+def test_flagship_preset_is_first_and_slugs_are_unique() -> None:
+    """The flagship (XLabs) preset must lead the combined list — it's
+    meant to stand out, not blend into the alphabetical/vanilla picks —
+    and every slug (used as a widget id) must be unique or one preset's
+    button silently steals another's clicks."""
+    check(ALL_INSTALL_PRESETS[0][0] == "xlabs", "the flagship preset is not first")
+    slugs = [slug for slug, _label, _ref in ALL_INSTALL_PRESETS]
+    check(len(slugs) == len(set(slugs)), f"duplicate preset slugs: {slugs}")
+    for slug, _label, ref in ALL_INSTALL_PRESETS:
+        check(system.valid_image_ref(ref), f"{slug}'s ref {ref!r} fails its own validator")
 
 
 def test_valid_image_ref_accepts_oci_refs_rejects_shell_syntax() -> None:
@@ -83,6 +101,14 @@ async def test_manual_install_screen() -> None:
         check(isinstance(app.screen, ManualInstallScreen), "empty submit left the form")
         check(app.screen.status_text, "no validation message for an empty ref")
 
+        # The flagship preset fills in XLabs's own published image.
+        await pilot.click("#preset-xlabs")
+        await pilot.pause()
+        check(
+            app.screen.query_one("#image-ref", Input).value == "ghcr.io/arinadi/xlabs:latest",
+            "the flagship preset did not fill in the XLabs image",
+        )
+
         # Each preset fills the field with its own ref.
         await pilot.click("#preset-alpine")
         await pilot.pause()
@@ -125,6 +151,7 @@ async def test_manual_install_screen() -> None:
 
 
 TESTS = [
+    test_flagship_preset_is_first_and_slugs_are_unique,
     test_valid_image_ref_accepts_oci_refs_rejects_shell_syntax,
     test_pull_custom_image_refuses_invalid_ref,
     test_manual_install_screen,
